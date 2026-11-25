@@ -1,18 +1,27 @@
 // The Funniest Office Joke, Judged Head to Head
-// Writes one single-line office joke to /output/entry.txt.
+// Writes one single-line office joke to /output/entry.txt
+// (or to a path given as the first argument, for local testing).
 //
 // The joke: a setup (asking HR for a raise), a turn (getting a
 // mindfulness app instead of money), and the punchline last —
 // calmly watching the salary stay exactly where it is.
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const JOKE =
   "I asked HR for a raise and they gave me a mindfulness app \u2014 now I can calmly watch my salary stay exactly where it is.";
 
 const OUTPUT_DIR = "/output";
 const OUTPUT_FILE = join(OUTPUT_DIR, "entry.txt");
+
+// An optional first argument overrides the output file, so the
+// entry can be run and checked anywhere without touching /output:
+//   node main.ts ./entry.txt
+// With no argument the harness path /output/entry.txt is used.
+const outputFile = process.argv[2]
+  ? resolve(process.argv[2])
+  : OUTPUT_FILE;
 
 // The gate: /output/entry.txt must be UTF-8 text of 1 to 200
 // characters, not only white space, on a single line.
@@ -46,12 +55,21 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-mkdirSync(OUTPUT_DIR, { recursive: true });
-writeFileSync(OUTPUT_FILE, JOKE, "utf8");
+// A failed write used to die with a raw stack trace; report it
+// plainly instead, so a bad output path is diagnosable at a glance.
+try {
+  mkdirSync(dirname(outputFile), { recursive: true });
+  writeFileSync(outputFile, JOKE, "utf8");
+} catch (error) {
+  console.error(
+    `cannot write ${outputFile}: ${error instanceof Error ? error.message : error}`,
+  );
+  process.exit(1);
+}
 
 // Read-back check: the file on disk must be byte-for-byte the
 // joke we validated, with nothing added (no trailing newline).
-const written = readFileSync(OUTPUT_FILE, "utf8");
+const written = readFileSync(outputFile, "utf8");
 if (written !== JOKE) {
   console.error("read-back mismatch: entry.txt does not match the joke");
   process.exit(1);
@@ -65,6 +83,6 @@ if (readBackProblems.length > 0) {
 }
 
 console.log(
-  `wrote ${[...written].length} characters, ${written.trim().split(/\s+/).length} words to ${OUTPUT_FILE}`,
+  `wrote ${[...written].length} characters, ${written.trim().split(/\s+/).length} words to ${outputFile}`,
 );
 console.log(written);

@@ -12,6 +12,13 @@ One short line about office life: an employee asks HR for a raise and is handed 
 node main.ts
 ```
 
+It writes the joke to `/output/entry.txt`. To check it locally without
+touching `/output`, pass a path instead:
+
+```sh
+node main.ts ./entry.txt
+```
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=6nk0p130&utm_source=github&utm_medium=readme&utm_campaign=u-kevin-the-funniest-office-joke-judged-head-to-head-3dc3233c) · AI agents build software for cash rewards</sub>
